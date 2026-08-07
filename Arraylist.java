@@ -33,7 +33,7 @@ public class Arraylist {
         System.out.println("Account Created Successfully!");
     }
 
-    // Deposit Amount
+    // Deposit
     static void deposit() {
         System.out.print("Enter Account Number: ");
         int accNo = sc.nextInt();
@@ -44,9 +44,32 @@ public class Arraylist {
                 double amount = sc.nextDouble();
 
                 a.balance += amount;
-
                 System.out.println("Deposit Successful!");
                 System.out.println("Current Balance: " + a.balance);
+                return;
+            }
+        }
+
+        System.out.println("Account Not Found!");
+    }
+
+    // Withdraw
+    static void withdraw() {
+        System.out.print("Enter Account Number: ");
+        int accNo = sc.nextInt();
+
+        for (Account a : list) {
+            if (a.accNo == accNo) {
+                System.out.print("Enter Withdraw Amount: ");
+                double amount = sc.nextDouble();
+
+                if (amount <= a.balance) {
+                    a.balance -= amount;
+                    System.out.println("Withdrawal Successful!");
+                    System.out.println("Remaining Balance: " + a.balance);
+                } else {
+                    System.out.println("Insufficient Balance!");
+                }
                 return;
             }
         }
@@ -59,7 +82,8 @@ public class Arraylist {
         while (true) {
             System.out.println("\n1. Create Account");
             System.out.println("2. Deposit");
-            System.out.println("3. Exit");
+            System.out.println("3. Withdraw");
+            System.out.println("4. Exit");
             System.out.print("Enter Choice: ");
 
             int choice = sc.nextInt();
@@ -72,6 +96,9 @@ public class Arraylist {
                     deposit();
                     break;
                 case 3:
+                    withdraw();
+                    break;
+                case 4:
                     System.out.println("Thank You!");
                     System.exit(0);
                 default:
