@@ -19,7 +19,7 @@ public class Arraylist{
     static HashMap<Integer, Account> accounts = new HashMap<>();
 
     // Create Account
-    static void createAccount(Scanner sc) {
+    static void createAccount(Scanner sc) {   
 
         System.out.print("Enter Account Number: ");
         int accountNumber = sc.nextInt();
