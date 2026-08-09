@@ -16,8 +16,14 @@ class Account {
 
 public class Arraylist {
 
-    // HashMap for storing multiple accounts
+    // HashMap stores multiple accounts
     static HashMap<Integer, Account> accounts = new HashMap<>();
+
+    // Variables for storing the last transfer
+    static int lastSenderNumber = 0;
+    static int lastReceiverNumber = 0;
+    static double lastTransferAmount = 0;
+    static boolean transferAvailable = false;
 
     // ================= CREATE ACCOUNT =================
     static void createAccount(Scanner sc) {
@@ -149,11 +155,15 @@ public class Arraylist {
             return;
         }
 
-        // Deduct money from sender
+        // Transfer money
         sender.balance = sender.balance - amount;
-
-        // Add money to receiver
         receiver.balance = receiver.balance + amount;
+
+        // Store transfer details for reversal
+        lastSenderNumber = senderNumber;
+        lastReceiverNumber = receiverNumber;
+        lastTransferAmount = amount;
+        transferAvailable = true;
 
         System.out.println("\n===== TRANSFER SUCCESSFUL =====");
         System.out.println("Sender Account   : " + sender.accountNumber);
@@ -164,6 +174,51 @@ public class Arraylist {
 
         System.out.println("\nSender Balance   : ₹" + sender.balance);
         System.out.println("Receiver Balance : ₹" + receiver.balance);
+    }
+
+    // ================= REVERSE TRANSFER =================
+    static void reverseTransfer() {
+
+        // Check whether a transfer is available for reversal
+        if (!transferAvailable) {
+            System.out.println("No transfer available for reversal!");
+            return;
+        }
+
+        // Find sender and receiver using HashMap
+        Account sender = accounts.get(lastSenderNumber);
+        Account receiver = accounts.get(lastReceiverNumber);
+
+        if (sender == null || receiver == null) {
+            System.out.println("Account not found!");
+            return;
+        }
+
+        // Check receiver has enough money to reverse
+        if (receiver.balance < lastTransferAmount) {
+            System.out.println(
+                "Reversal failed! Receiver has insufficient balance."
+            );
+            return;
+        }
+
+        // Reverse the transaction
+        receiver.balance = receiver.balance - lastTransferAmount;
+        sender.balance = sender.balance + lastTransferAmount;
+
+        System.out.println("\n===== TRANSFER REVERSED =====");
+        System.out.println("Amount Reversed : ₹" + lastTransferAmount);
+        System.out.println("From Account    : " + lastReceiverNumber);
+        System.out.println("To Account      : " + lastSenderNumber);
+
+        System.out.println("\nSender Balance   : ₹" + sender.balance);
+        System.out.println("Receiver Balance : ₹" + receiver.balance);
+
+        // Clear last transfer
+        transferAvailable = false;
+        lastSenderNumber = 0;
+        lastReceiverNumber = 0;
+        lastTransferAmount = 0;
     }
 
     // ================= DISPLAY ACCOUNT =================
@@ -220,9 +275,10 @@ public class Arraylist {
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer Money");
-            System.out.println("5. Display Account");
-            System.out.println("6. Display All Accounts");
-            System.out.println("7. Exit");
+            System.out.println("5. Reverse Transfer");
+            System.out.println("6. Display Account");
+            System.out.println("7. Display All Accounts");
+            System.out.println("8. Exit");
 
             System.out.print("Enter your choice: ");
             int choice = sc.nextInt();
@@ -246,14 +302,18 @@ public class Arraylist {
                     break;
 
                 case 5:
-                    displayAccount(sc);
+                    reverseTransfer();
                     break;
 
                 case 6:
-                    displayAllAccounts();
+                    displayAccount(sc);
                     break;
 
                 case 7:
+                    displayAllAccounts();
+                    break;
+
+                case 8:
                     System.out.println(
                         "Thank you for using Bank Management System!"
                     );
