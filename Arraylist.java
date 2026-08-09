@@ -3,11 +3,13 @@ import java.util.Scanner;
 
 class Account {
 
+    int customerId;
     int accountNumber;
     String name;
     double balance;
 
-    Account(int accountNumber, String name, double balance) {
+    Account(int customerId, int accountNumber, String name, double balance) {
+        this.customerId = customerId;
         this.accountNumber = accountNumber;
         this.name = name;
         this.balance = balance;
@@ -16,29 +18,60 @@ class Account {
 
 public class Arraylist {
 
-    // HashMap stores multiple accounts
+    // ==================================================
+    // MULTI-KEY CUSTOMER INDEXING
+    // ==================================================
+
+    // Key 1: Account Number
     static HashMap<Integer, Account> accounts = new HashMap<>();
 
-    // Variables for storing the last transfer
+    // Key 2: Customer ID
+    static HashMap<Integer, Account> customerIndex = new HashMap<>();
+
+    // Key 3: Customer Name
+    static HashMap<String, Account> nameIndex = new HashMap<>();
+
+
+    // ==================================================
+    // VARIABLES FOR LAST TRANSFER
+    // ==================================================
+
     static int lastSenderNumber = 0;
     static int lastReceiverNumber = 0;
     static double lastTransferAmount = 0;
     static boolean transferAvailable = false;
 
-    // ================= CREATE ACCOUNT =================
+
+    // ==================================================
+    // CREATE ACCOUNT
+    // ==================================================
+
     static void createAccount(Scanner sc) {
+
+        System.out.print("Enter Customer ID: ");
+        int customerId = sc.nextInt();
+
+        if (customerIndex.containsKey(customerId)) {
+            System.out.println("Customer ID already exists!");
+            return;
+        }
 
         System.out.print("Enter Account Number: ");
         int accountNumber = sc.nextInt();
         sc.nextLine();
 
         if (accounts.containsKey(accountNumber)) {
-            System.out.println("Account already exists!");
+            System.out.println("Account Number already exists!");
             return;
         }
 
-        System.out.print("Enter Account Holder Name: ");
+        System.out.print("Enter Customer Name: ");
         String name = sc.nextLine();
+
+        if (nameIndex.containsKey(name)) {
+            System.out.println("Customer Name already exists!");
+            return;
+        }
 
         System.out.print("Enter Initial Deposit: ");
         double balance = sc.nextDouble();
@@ -48,14 +81,35 @@ public class Arraylist {
             return;
         }
 
-        Account account = new Account(accountNumber, name, balance);
+        Account account = new Account(
+            customerId,
+            accountNumber,
+            name,
+            balance
+        );
 
+        // Store using Account Number
         accounts.put(accountNumber, account);
 
-        System.out.println("Account created successfully!");
+        // Store using Customer ID
+        customerIndex.put(customerId, account);
+
+        // Store using Customer Name
+        nameIndex.put(name, account);
+
+        System.out.println("\nAccount created successfully!");
+
+        System.out.println("Customer ID    : " + customerId);
+        System.out.println("Account Number : " + accountNumber);
+        System.out.println("Customer Name  : " + name);
+        System.out.println("Balance        : ₹" + balance);
     }
 
-    // ================= DEPOSIT =================
+
+    // ==================================================
+    // DEPOSIT
+    // ==================================================
+
     static void deposit(Scanner sc) {
 
         System.out.print("Enter Account Number: ");
@@ -82,7 +136,11 @@ public class Arraylist {
         System.out.println("Current Balance: ₹" + account.balance);
     }
 
-    // ================= WITHDRAW =================
+
+    // ==================================================
+    // WITHDRAW
+    // ==================================================
+
     static void withdraw(Scanner sc) {
 
         System.out.print("Enter Account Number: ");
@@ -114,7 +172,11 @@ public class Arraylist {
         System.out.println("Current Balance: ₹" + account.balance);
     }
 
-    // ================= TRANSFER MONEY =================
+
+    // ==================================================
+    // TRANSFER MONEY
+    // ==================================================
+
     static void transfer(Scanner sc) {
 
         System.out.print("Enter Sender Account Number: ");
@@ -138,7 +200,9 @@ public class Arraylist {
         }
 
         if (senderNumber == receiverNumber) {
-            System.out.println("Sender and receiver cannot be the same!");
+            System.out.println(
+                "Sender and receiver cannot be the same!"
+            );
             return;
         }
 
@@ -159,33 +223,50 @@ public class Arraylist {
         sender.balance = sender.balance - amount;
         receiver.balance = receiver.balance + amount;
 
-        // Store transfer details for reversal
+        // Save last transfer details
         lastSenderNumber = senderNumber;
         lastReceiverNumber = receiverNumber;
         lastTransferAmount = amount;
         transferAvailable = true;
 
         System.out.println("\n===== TRANSFER SUCCESSFUL =====");
-        System.out.println("Sender Account   : " + sender.accountNumber);
-        System.out.println("Sender Name      : " + sender.name);
-        System.out.println("Receiver Account : " + receiver.accountNumber);
-        System.out.println("Receiver Name    : " + receiver.name);
-        System.out.println("Transfer Amount  : ₹" + amount);
 
-        System.out.println("\nSender Balance   : ₹" + sender.balance);
-        System.out.println("Receiver Balance : ₹" + receiver.balance);
+        System.out.println("Sender Account   : "
+                + sender.accountNumber);
+
+        System.out.println("Sender Name      : "
+                + sender.name);
+
+        System.out.println("Receiver Account : "
+                + receiver.accountNumber);
+
+        System.out.println("Receiver Name    : "
+                + receiver.name);
+
+        System.out.println("Transfer Amount  : ₹"
+                + amount);
+
+        System.out.println("\nSender Balance   : ₹"
+                + sender.balance);
+
+        System.out.println("Receiver Balance : ₹"
+                + receiver.balance);
     }
 
-    // ================= REVERSE TRANSFER =================
+
+    // ==================================================
+    // REVERSE TRANSFER
+    // ==================================================
+
     static void reverseTransfer() {
 
-        // Check whether a transfer is available for reversal
         if (!transferAvailable) {
-            System.out.println("No transfer available for reversal!");
+            System.out.println(
+                "No transfer available for reversal!"
+            );
             return;
         }
 
-        // Find sender and receiver using HashMap
         Account sender = accounts.get(lastSenderNumber);
         Account receiver = accounts.get(lastReceiverNumber);
 
@@ -194,7 +275,6 @@ public class Arraylist {
             return;
         }
 
-        // Check receiver has enough money to reverse
         if (receiver.balance < lastTransferAmount) {
             System.out.println(
                 "Reversal failed! Receiver has insufficient balance."
@@ -202,26 +282,109 @@ public class Arraylist {
             return;
         }
 
-        // Reverse the transaction
-        receiver.balance = receiver.balance - lastTransferAmount;
-        sender.balance = sender.balance + lastTransferAmount;
+        // Reverse transaction
+        receiver.balance =
+            receiver.balance - lastTransferAmount;
+
+        sender.balance =
+            sender.balance + lastTransferAmount;
 
         System.out.println("\n===== TRANSFER REVERSED =====");
-        System.out.println("Amount Reversed : ₹" + lastTransferAmount);
-        System.out.println("From Account    : " + lastReceiverNumber);
-        System.out.println("To Account      : " + lastSenderNumber);
 
-        System.out.println("\nSender Balance   : ₹" + sender.balance);
-        System.out.println("Receiver Balance : ₹" + receiver.balance);
+        System.out.println(
+            "Amount Reversed : ₹" + lastTransferAmount
+        );
 
-        // Clear last transfer
+        System.out.println(
+            "From Account    : " + lastReceiverNumber
+        );
+
+        System.out.println(
+            "To Account      : " + lastSenderNumber
+        );
+
+        System.out.println(
+            "Sender Balance   : ₹" + sender.balance
+        );
+
+        System.out.println(
+            "Receiver Balance : ₹" + receiver.balance
+        );
+
+        // Clear transfer information
         transferAvailable = false;
         lastSenderNumber = 0;
         lastReceiverNumber = 0;
         lastTransferAmount = 0;
     }
 
-    // ================= DISPLAY ACCOUNT =================
+
+    // ==================================================
+    // SEARCH BY ACCOUNT NUMBER
+    // ==================================================
+
+    static void searchByAccountNumber(Scanner sc) {
+
+        System.out.print("Enter Account Number: ");
+        int accountNumber = sc.nextInt();
+
+        Account account = accounts.get(accountNumber);
+
+        if (account == null) {
+            System.out.println("Account not found!");
+            return;
+        }
+
+        displayDetails(account);
+    }
+
+
+    // ==================================================
+    // SEARCH BY CUSTOMER ID
+    // ==================================================
+
+    static void searchByCustomerId(Scanner sc) {
+
+        System.out.print("Enter Customer ID: ");
+        int customerId = sc.nextInt();
+
+        Account account = customerIndex.get(customerId);
+
+        if (account == null) {
+            System.out.println("Customer not found!");
+            return;
+        }
+
+        displayDetails(account);
+    }
+
+
+    // ==================================================
+    // SEARCH BY CUSTOMER NAME
+    // ==================================================
+
+    static void searchByName(Scanner sc) {
+
+        sc.nextLine();
+
+        System.out.print("Enter Customer Name: ");
+        String name = sc.nextLine();
+
+        Account account = nameIndex.get(name);
+
+        if (account == null) {
+            System.out.println("Customer not found!");
+            return;
+        }
+
+        displayDetails(account);
+    }
+
+
+    // ==================================================
+    // DISPLAY ACCOUNT
+    // ==================================================
+
     static void displayAccount(Scanner sc) {
 
         System.out.print("Enter Account Number: ");
@@ -234,13 +397,44 @@ public class Arraylist {
             return;
         }
 
-        System.out.println("\n===== ACCOUNT DETAILS =====");
-        System.out.println("Account Number : " + account.accountNumber);
-        System.out.println("Account Holder : " + account.name);
-        System.out.println("Balance        : ₹" + account.balance);
+        displayDetails(account);
     }
 
-    // ================= DISPLAY ALL ACCOUNTS =================
+
+    // ==================================================
+    // DISPLAY DETAILS
+    // ==================================================
+
+    static void displayDetails(Account account) {
+
+        System.out.println("\n========== CUSTOMER DETAILS ==========");
+
+        System.out.println(
+            "Customer ID    : " + account.customerId
+        );
+
+        System.out.println(
+            "Account Number : " + account.accountNumber
+        );
+
+        System.out.println(
+            "Customer Name  : " + account.name
+        );
+
+        System.out.println(
+            "Balance        : ₹" + account.balance
+        );
+
+        System.out.println(
+            "======================================"
+        );
+    }
+
+
+    // ==================================================
+    // DISPLAY ALL ACCOUNTS
+    // ==================================================
+
     static void displayAllAccounts() {
 
         if (accounts.isEmpty()) {
@@ -248,39 +442,70 @@ public class Arraylist {
             return;
         }
 
-        System.out.println("\n========== ALL ACCOUNTS ==========");
+        System.out.println(
+            "\n========== ALL CUSTOMERS =========="
+        );
 
         for (Account account : accounts.values()) {
 
             System.out.println("----------------------------------");
-            System.out.println("Account Number : " + account.accountNumber);
-            System.out.println("Account Holder : " + account.name);
-            System.out.println("Balance        : ₹" + account.balance);
+
+            System.out.println(
+                "Customer ID    : " + account.customerId
+            );
+
+            System.out.println(
+                "Account Number : " + account.accountNumber
+            );
+
+            System.out.println(
+                "Customer Name  : " + account.name
+            );
+
+            System.out.println(
+                "Balance        : ₹" + account.balance
+            );
         }
 
         System.out.println("----------------------------------");
     }
 
-    // ================= MAIN METHOD =================
+
+    // ==================================================
+    // MAIN METHOD
+    // ==================================================
+
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
 
         while (true) {
 
-            System.out.println("\n=================================");
-            System.out.println("       BANK MANAGEMENT SYSTEM");
-            System.out.println("=================================");
+            System.out.println(
+                "\n========================================"
+            );
+
+            System.out.println(
+                "       BANK MANAGEMENT SYSTEM"
+            );
+
+            System.out.println(
+                "========================================"
+            );
+
             System.out.println("1. Create Account");
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer Money");
             System.out.println("5. Reverse Transfer");
-            System.out.println("6. Display Account");
-            System.out.println("7. Display All Accounts");
-            System.out.println("8. Exit");
+            System.out.println("6. Search by Account Number");
+            System.out.println("7. Search by Customer ID");
+            System.out.println("8. Search by Customer Name");
+            System.out.println("9. Display Account");
+            System.out.println("10. Display All Accounts");
+            System.out.println("11. Exit");
 
-            System.out.print("Enter your choice: ");
+            System.out.print("\nEnter your choice: ");
             int choice = sc.nextInt();
 
             switch (choice) {
@@ -306,22 +531,38 @@ public class Arraylist {
                     break;
 
                 case 6:
-                    displayAccount(sc);
+                    searchByAccountNumber(sc);
                     break;
 
                 case 7:
-                    displayAllAccounts();
+                    searchByCustomerId(sc);
                     break;
 
                 case 8:
+                    searchByName(sc);
+                    break;
+
+                case 9:
+                    displayAccount(sc);
+                    break;
+
+                case 10:
+                    displayAllAccounts();
+                    break;
+
+                case 11:
+
                     System.out.println(
                         "Thank you for using Bank Management System!"
                     );
+
                     sc.close();
                     return;
 
                 default:
-                    System.out.println("Invalid choice!");
+                    System.out.println(
+                        "Invalid choice!"
+                    );
             }
         }
     }
